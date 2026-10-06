@@ -1,0 +1,14 @@
+[Unit]
+Description=Resize root partition and filesystem on first boot
+After=local-fs.target systemd-udev-settle.service
+Wants=systemd-udev-settle.service
+Before=multi-user.target
+ConditionPathExists=!/var/lib/resize-rootfs.done
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/resize-rootfs.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
