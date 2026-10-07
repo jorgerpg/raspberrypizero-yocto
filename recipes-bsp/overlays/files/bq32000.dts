@@ -1,0 +1,23 @@
+/dts-v1/;
+/plugin/;
+
+/ {
+    /* Altere "i2c1" para o barramento correto da sua placa (ex: i2c0, i2c2, etc.) */
+    fragment@0 {
+        target = <&i2c1>;
+        
+        __overlay__ {
+            #address-cells = <1>;
+            #size-cells = <0>;
+            status = "okay";
+
+            bq32000: rtc@68 {
+                compatible = "ti,bq32000";
+                reg = <0x68>;
+                
+                /* Ative APENAS se usar Supercapacitor. Remova se usar bateria CR2032 */
+                trickle-resistor-ohms = <1120>; 
+            };
+        };
+    };
+};
