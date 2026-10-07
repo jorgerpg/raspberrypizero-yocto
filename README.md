@@ -56,6 +56,7 @@ meta-zero/
 │   ├── bblayers.conf
 │   └── local.conf
 ├── recipes-bsp/
+│   ├── overlays/                        # .dts proprios compilados para .dtbo
 │   └── resize-rootfs/                   # resize da particao raiz no 1o boot
 └── recipes-core/
     ├── images/
@@ -64,6 +65,7 @@ meta-zero/
     │   ├── rpi-test-image-network.inc
     │   ├── rpi-test-image-docker.inc
     │   ├── rpi-test-image-selfcheck.inc
+    │   ├── rpi-test-image-overlays.inc
     │   └── rpi-test-image-output.inc
     ├── packagegroups/packagegroup-rpi-test.bbappend
     └── systemd/systemd_%.bbappend
@@ -165,7 +167,7 @@ Servicos do layer habilitados no boot:
 
 ### 5.4 Overlay PWM (exemplo)
 
-O overlay vem do kernel do Raspberry Pi; o layer nao carrega `.dtbo` proprio. Configuracao em `templates/local.conf`:
+O overlay vem do kernel do Raspberry Pi (para overlays proprios do layer, ver secao "Adicionar overlay de device tree"). Configuracao em `templates/local.conf`:
 
 - `RPI_KERNEL_DEVICETREE_OVERLAYS:append = " overlays/pwm.dtbo "`: o `linux-raspberrypi` compila o `pwm.dtbo` e o `IMAGE_BOOT_FILES` o copia para `overlays/` na particao de boot (vfat)
 - `dtoverlay=pwm` em `RPI_EXTRA_CONFIG`: o firmware carrega o overlay (GPIO 18, ALT5)
@@ -259,7 +261,13 @@ Defina `ZERO_IMAGE_NAME` (ver secao 6).
 1. Se o overlay existe no kernel do Raspberry Pi, adicione `overlays/<nome>.dtbo` em `RPI_KERNEL_DEVICETREE_OVERLAYS`
 2. Habilite com `dtoverlay=<nome>` em `RPI_EXTRA_CONFIG`
 
-Um overlay customizado (fora do kernel) precisa chegar na particao de boot, por exemplo via `IMAGE_BOOT_FILES` ou como patch no kernel; instala-lo em `/boot` pelo rootfs nao funciona (ver secao 5.4).
+Overlay customizado (fora do kernel), como o `bq32000` (RTC I2C):
+
+1. Coloque o `<nome>.dts` (com `/plugin/;`) em `recipes-bsp/overlays/files/` e adicione `file://<nome>.dts` ao `SRC_URI` de `recipes-bsp/overlays/overlays.bb`
+2. Adicione `<nome>` a `ZERO_OVERLAYS` em `recipes-core/images/rpi-test-image-overlays.inc`
+3. Habilite com `dtoverlay=<nome>` em `RPI_EXTRA_CONFIG`
+
+A receita `overlays` (classe `devicetree`) compila o `.dtbo` e o publica em `${DEPLOY_DIR_IMAGE}/devicetree/`; o `.inc` da imagem o copia para `overlays/` na particao de boot via `IMAGE_BOOT_FILES`. Instalar o `.dtbo` em `/boot` pelo rootfs nao funciona (ver secao 5.4).
 
 ## 9) Troubleshooting
 
